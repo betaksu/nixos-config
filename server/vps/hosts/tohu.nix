@@ -1,14 +1,16 @@
 # 编辑此配置文件以定义系统安装内容
 # 帮助文档：man configuration.nix 或 nixos-help
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, nixos-facter-modules, ... }:
 
 {
   imports =
     [
-      ./platform/generic.nix
-      ./kernel/generic.nix
-      ./auth/default.nix
+      ../platform/generic.nix
+      ../auth/default.nix
+      nixos-facter-modules.nixosModules.facter
     ];
+
+  facter.reportPath = ./facter/tohu.json;
 
   # --- 网络配置 ---
   networking = {

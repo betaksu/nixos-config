@@ -3,9 +3,6 @@
 {
   # 禁用 systemd-boot
   boot.loader.systemd-boot.enable = false;
-
-  # 作用：尝试向主板 NVRAM 写入 "NixOS" 启动项
-  boot.loader.efi.canTouchEfiVariables = true;
   
   # 指定 EFI 挂载点 (必须与 Disko 配置一致)
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
@@ -15,6 +12,9 @@
     enable = true;
     device = "nodev";
     efiSupport = true;
+    
+    # 作用：将引导文件同时也复制到默认位置，防止主板“失忆”找不到启动项
+    efiInstallAsRemovable = true;
   };
   
   boot.supportedFilesystems = [ "btrfs" ];

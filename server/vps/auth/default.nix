@@ -1,8 +1,11 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   # --- Root 用户配置 ---
   users.users.root = {
+    # 强制禁用 hashedPasswordFile，解决冲突
+    hashedPasswordFile = lib.mkForce null;
+
     # 注意：这是 "initial" 密码，仅在第一次部署时生效。
     # 以后如果你用 passwd 命令改了密码，这个配置不会覆盖它（这是为了安全性）。
     # nix run nixpkgs#mkpasswd -- -m sha-512

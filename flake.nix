@@ -9,23 +9,41 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-facter-modules.url = "github:nix-community/nixos-facter-modules";
   };
 
   # 2. Outputs: 定义构建产物
-  outputs = { self, nixpkgs, disko, ... }@inputs: {
+  outputs = 
+  inputs@{ self, nixpkgs, disko, nixos-facter-modules, ... }: {
     nixosConfigurations = {
       tohu = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         
         # 将 inputs 传递给模块，这样在 configuration.nix 中可以使用 inputs.nixpkgs 等
         specialArgs = { 
-          inherit inputs; 
+          inherit inputs;
           inherit disko;
+          inherit nixos-facter-modules;
         };
         
         modules = [
-          ./server/vps/tohu.nix
-          ./disk-config/nvme/Swap-2G.nix
+          ./server/vps/hosts/tohu.nix
+          ./disk-config/Swap-2G.nix
+        ];
+      };
+      hyperv = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        
+        # 将 inputs 传递给模块，这样在 configuration.nix 中可以使用 inputs.nixpkgs 等
+        specialArgs = { 
+          inherit inputs;
+          inherit disko;
+          inherit nixos-facter-modules;
+        };
+        
+        modules = [
+          ./server/vps/hosts/hyperv.nix
+          ./disk-config/Swap-8G.nix
         ];
       };
     };
