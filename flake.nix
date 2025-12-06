@@ -44,7 +44,7 @@
         
         modules = [
           ./server/vps/hosts/hyperv.nix
-          ./disk/vps/Swap-8G.nix
+          ./disk/vps/Swap-4G.nix
           ./disk/auto-resize.nix
         ];
       };
