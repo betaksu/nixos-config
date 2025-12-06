@@ -21,10 +21,9 @@
           };
         };
         
-        # 通用版同样享受 10% 的动态 Swap
         swap = {
           priority = 2;
-          size = "10%";
+          size = "2G";
           content = {
             type = "swap";
             discardPolicy = "both";

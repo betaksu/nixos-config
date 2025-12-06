@@ -23,11 +23,11 @@
           };
         };
 
-        # 2. Swap 分区：动态占用磁盘总大小的 10%
+        # 2. Swap 分区：1G 固定大小
         # 因为这是独立的 Swap 分区，所以不需要 subvol=@swap 了
         swap = {
           priority = 2;
-          size = "10%"; 
+          size = "2G"; 
           content = {
             type = "swap";
             discardPolicy = "both"; # 允许 Swap 使用 discard/TRIM

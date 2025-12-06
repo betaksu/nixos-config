@@ -25,7 +25,7 @@
         
         modules = [
           ./server/vps/tohu.nix
-          ./disk-config/nvme.nix
+          ./disk-config/nvme/Swap-2G.nix
         ];
       };
     };
