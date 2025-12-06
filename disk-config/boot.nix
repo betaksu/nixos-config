@@ -15,9 +15,6 @@
     enable = true;
     device = "nodev";
     efiSupport = true;
-    
-    # 作用：将引导文件同时也复制到默认位置，防止主板“失忆”找不到启动项
-    efiInstallAsRemovable = true;
   };
   
   boot.supportedFilesystems = [ "btrfs" ];
