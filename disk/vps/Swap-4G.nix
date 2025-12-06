@@ -7,7 +7,7 @@
 
   disko.devices.disk.main = {
     # 这里指定生成的 raw 文件初始大小。
-    imageSize = "7G";
+    imageSize = "10G";
 
     device = "/dev/sda";
     content = {
