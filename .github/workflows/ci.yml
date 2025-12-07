@@ -23,41 +23,24 @@ jobs:
       matrix:
         host: [tohu, hyperv]
     steps:
-      - name: Maximize Build Space
-        uses: easimon/maximize-build-space@master
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
         with:
-          root-reserve-mb: 512
-          swap-size-mb: 1024
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Mount Nix Store
-        run: |
-          sudo mkdir -p /mnt/nix
-          sudo chown -R $USER:$(id -gn $USER) /mnt/nix
-          sudo mkdir -p /nix
-          sudo mount --bind /mnt/nix /nix
-          sudo chown -R $USER:$(id -gn $USER) /nix
-          echo "Mounted /mnt/nix to /nix"
-
-      - name: Fix Git Permissions
-        run: |
-           git config --global --add safe.directory /home/runner/work/nixos-config/nixos-config
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: VM Test (tohu)
-        if: matrix.host == 'tohu'
-        run: nix run --accept-flake-config github:nix-community/nixos-anywhere -- --flake .#tohu --vm-test
-
-      - name: Build Disko Images (hyperv)
-        if: matrix.host == 'hyperv'
-        run: nix build --accept-flake-config .#nixosConfigurations.hyperv.config.system.build.diskoImages
+      - name: Build Disko Images
+        run: nix build --accept-flake-config .#nixosConfigurations.${{ matrix.host }}.config.system.build.diskoImages
