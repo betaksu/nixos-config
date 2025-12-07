@@ -14,8 +14,6 @@
 
   # --- 网络配置 ---
   networking = {
-    hostName = "tohu";
-
     useDHCP = false;
     
     # 静态 IP 配置

@@ -14,9 +14,6 @@ export HOST=tohu
 
 # 设置目标服务器的 IP 地址（用于远程安装）
 export TARGET_IP=1.2.3.4
-
-# 设置你的自定义镜像下载链接（仅用于方式一）
-export IMAGE_URL="https://your-domain.com/image.tar.zst"
 ```
 
 ---

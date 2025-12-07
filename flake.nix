@@ -41,6 +41,9 @@
           extraModules = [
             ./server/vps/hosts/tohu.nix
             ./disk/vps/Swap-2G.nix
+            {
+              networking.hostName = "tohu";
+            }
           ];
         };
 
@@ -50,9 +53,12 @@
           extraModules = [
             ./server/vps/hosts/hyperv.nix
             ./disk/vps/Swap-4G.nix
+            {
+              networking.hostName = "hyperv";
+            }
           ];
         };
-        
+
         # ARM 机器
         # raspi = mkSystem {
         #   system = "aarch64-linux";

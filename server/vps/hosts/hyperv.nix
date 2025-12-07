@@ -12,11 +12,6 @@
 
   facter.reportPath = ./facter/hyperv.json;
 
-  # --- 网络配置 ---
-  networking = {
-    hostName = "hyperv";
-  };
-
   # --- 系统状态版本 ---
   # 定义首次安装时的 NixOS 版本，用于保持数据兼容性。
   # 除非你清楚后果，否则不要更改此值 (这不会影响系统升级)。
