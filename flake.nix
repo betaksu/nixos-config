@@ -12,6 +12,6 @@
   };
 
   outputs = { self, ... }@inputs: {
-    nixosConfigurations = import ./server/vps/vps.nix { inherit inputs; };
+    nixosConfigurations = import ./server/vps.nix { inherit inputs; };
   };
 }
