@@ -170,25 +170,3 @@ bash reinstall.sh nixos --password "ChangeMe123"
 # 重启开始重装
 reboot
 ```
-
----
-
-## 辅助：在其他 Linux 系统获取硬件配置 (facter.json)
-
-如果你需要在非 NixOS 系统上预先获取硬件信息以便生成 `facter.json`：
-
-```bash
-# 1. 安装 Nix
-sh <(curl -L https://nixos.org/nix/install) --daemon
-
-# 2. 配置 Nix
-mkdir -p ~/.config/nix
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-
-# 3. 运行 nixos-facter 生成配置
-nix run \
-  --option experimental-features "nix-command flakes" \
-  --option extra-substituters https://numtide.cachix.org \
-  --option extra-trusted-public-keys numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE= \
-  github:nix-community/nixos-facter -- -o ./facter.json
-```

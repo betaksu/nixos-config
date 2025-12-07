@@ -19,7 +19,35 @@ mkdir -p ~/.config/nix
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```
 
-### 第二步：准备主机配置文件
+### 第二步：获取配置仓库
+
+我们需要先将配置仓库下载到本地，以便后续基于模板创建您的专属配置。
+
+**选项一：配置自己的 Git Repo (推荐)**
+1. Fork 本仓库: [https://github.com/ShaoG-R/nixos-config](https://github.com/ShaoG-R/nixos-config)
+2. 在本地配置好 Git 环境并 clone 你的 Fork：
+   ```bash
+   git clone git@github.com:<你的用户名>/nixos-config.git
+   cd nixos-config
+   ```
+
+**选项二：仅本地保存配置库**
+1. 下载并解压配置库：
+   ```bash
+   curl -L https://github.com/ShaoG-R/nixos-config/archive/refs/heads/main.tar.gz -o config.tar.gz && \
+   tar -xzf config.tar.gz && \
+   rm config.tar.gz && \
+   mv nixos-config-main nixos-config && \
+   cd nixos-config
+   ```
+2. 初始化 Git 仓库（Nix Flakes 必须在 Git 仓库中工作）：
+   ```bash
+   # 如果你需要彻底脱离原有的 git 历史，可以先删除 .git (通常这一步在下载 tarball 时是不需要的，因为 tarball 不含 .git)
+   git init
+   git add .
+   ```
+
+### 第三步：准备主机配置文件
 
 首先确认你的主机网络环境是否支持 DHCP。我们为您准备了详细的探测教程：
 👉 **[如何检测主机是否支持 DHCP](./create_your_own_host/check_dhcp.md)**
@@ -41,18 +69,43 @@ cp server/vps/hosts/tohu.nix server/vps/hosts/<新主机名>.nix
 *需修改 `<新主机名>.nix` 中 `facter.reportPath` 的 `tohu` 为你的 `<新主机名>`，并根据你主机的实际网络情况修改 `networking` 部分的 IP、网关等配置。*
 
 **关于 SSH 登录配置**
-如果你希望允许使用密码登录 SSH（不推荐，但有时便于调试）：
-1. 在 `<新主机名>.nix` 中，将 `import ../auth/default.nix` 改为 `import ../auth/permit_passwd.nix` (仅适用于复制自 `tohu.nix` 的情况，`hyperv.nix` 默认已使用 `permit_passwd.nix`)。
-2. 生成密码 hash:
-   ```bash
-   nix run nixpkgs#mkpasswd -- -m sha-512
-   ```
-3. 用生成的字符串替换 `initialHashedPassword` 的值。
 
-**设置 SSH Key**
-使用你自己的 SSH Public Key 替换 `authorizedKeys` 列表。如果你使用的是 `permit_passwd.nix` 且暂不配置 Key，可以将其设为空列表 `authorizedKeys = []`。
+打开生成的 `<新主机名>.nix`，找到 `imports` 部分和 `initialHashedPassword` 设置。
 
-### 第三步：生成硬件报告 (facter.json)
+**1. 修改登录方式 (可选)**
+如果你希望允许密码登录（默认为仅 Key 登录），请将 `auth/default.nix` 修改为 `auth/permit_passwd.nix`：
+
+```nix
+  imports =
+    [
+      ../platform/generic.nix
+      # 修改这里：default.nix (仅Key) -> permit_passwd.nix (允许密码)
+      (import ../auth/permit_passwd.nix {
+        # ...
+      })
+      nixos-facter-modules.nixosModules.facter
+    ];
+```
+
+**2. 设置密码和 SSH Key**
+生成你的密码 Hash：
+```bash
+nix run nixpkgs#mkpasswd -- -m sha-512
+```
+
+然后替换配置文件中的 `initialHashedPassword` 和 `authorizedKeys`：
+
+```nix
+      (import ../auth/permit_passwd.nix {
+        # 用生成的 Hash 替换下面的字符串
+        initialHashedPassword = "$6$DhwUDApjyhVCtu4H$mr8WIUeuNrxtoLeGjrMqTtp6jQeQIBuWvq/.qv9yKm3T/g5794hV.GhG78W2rctGDaibDAgS9X9I9FuPndGC01";
+        
+        # 替换为你的 SSH 公钥
+        authorizedKeys = [ "ssh-ed25519 AAAA..." ];
+      })
+```
+
+### 第四步：生成硬件报告 (facter.json)
 
 我们需要使用 `nixos-facter` 来自动探测硬件配置（如驱动、内核模块等）。请在目标机器上运行：
 
@@ -61,45 +114,9 @@ nix run \
   --option experimental-features "nix-command flakes" \
   --option extra-substituters https://numtide.cachix.org \
   --option extra-trusted-public-keys numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE= \
-  github:nix-community/nixos-facter -- -o ./facter.json
+  github:nix-community/nixos-facter -- -o server/vps/hosts/facter/<新主机名>.json
 ```
-生成后，将其重命名为 `<新主机名>.json`。
-
-### 第四步：保存配置到仓库
-
-你可以选择 Fork 仓库到自己的 GitHub，或者仅在本地保存修改。
-
-**选项一：配置自己的 Git Repo (推荐)**
-1. Fork 本仓库: [https://github.com/ShaoG-R/nixos-config](https://github.com/ShaoG-R/nixos-config)
-2. 在本地配置好 Git 环境并 clone 你的 Fork。
-3. 将文件放置到正确位置：
-   - `<新主机名>.nix` -> `server/vps/hosts/`
-   - `<新主机名>.json` -> `server/vps/hosts/facter/`
-4. 提交更改：
-   ```bash
-   git add .
-   git commit -m "Add new host: <新主机名>"
-   ```
-
-**选项二：仅本地保存配置库**
-1. 下载并解压配置库：
-   ```bash
-   curl -L https://github.com/ShaoG-R/nixos-config/archive/refs/heads/main.tar.gz -o config.tar.gz && \
-   tar -xzf config.tar.gz && \
-   rm config.tar.gz && \
-   cd nixos-config-main
-   ```
-2. 将文件放置到正确位置：
-   - `<新主机名>.nix` -> `server/vps/hosts/`
-   - `<新主机名>.json` -> `server/vps/hosts/facter/`
-3. 初始化 Git 仓库（Nix Flakes 依赖 Git 追踪文件）：
-   ```bash
-   rm .git -r
-   git init
-   git add .
-   cd ..
-   mv nixos-config-main nixos-config
-   ```
+注意：我们将输出路径直接指定为了仓库中的 `server/vps/hosts/facter/<新主机名>.json` （假设你当前在仓库根目录下），如果不在，请移动该文件到对应位置。
 
 ### 第五步：注册新主机到 Flake
 
@@ -120,9 +137,10 @@ nix run \
           ];
         };
 ```
-最后，暂存所有修改（如果配置了 Git Repo 可以提交）：
+最后，提交所有修改到 Git（这对于 Flakes 很重要，未暂存的文件对 Flake 不可见）：
 ```bash
-git add flake.nix
+git add .
+git commit -m "Add new host: <新主机名>"
 ```
 
 现在，你已经准备好使用 `nixos-anywhere` 或构建 Raw 镜像来部署这台新机器了。
