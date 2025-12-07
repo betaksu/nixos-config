@@ -30,14 +30,15 @@ jobs:
 
       - name: Mount Nix Store
         run: |
+          sudo mkdir -p /mnt/nix
+          sudo chown -R $USER:$(id -gn $USER) /mnt/nix
           sudo mkdir -p /nix
-          sudo mount --bind /home/runner/work/nixos-config/nixos-config /nix
-          sudo chown -R $USER /nix
-          echo "Directory bound to /nix"
+          sudo mount --bind /mnt/nix /nix
+          sudo chown -R $USER:$(id -gn $USER) /nix
+          echo "Mounted /mnt/nix to /nix"
 
       - name: Fix Git Permissions
         run: |
-           sudo chown -R $USER:$(id -gn $USER) /home/runner/work/nixos-config/nixos-config
            git config --global --add safe.directory /home/runner/work/nixos-config/nixos-config
 
       - name: Install Nix
