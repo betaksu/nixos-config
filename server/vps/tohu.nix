@@ -8,6 +8,7 @@ mkSystem {
   extraModules = [
     ./platform/generic.nix
     ./kernel/cachyos.nix
+    ./services/smartdns-oversea.nix
     (import ./profiles/auto-upgrade.nix { allowReboot = true; })
     (import ./disk/common.nix { swapSize = 2048; })
     (import ./auth/default.nix {
