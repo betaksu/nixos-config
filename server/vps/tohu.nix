@@ -9,7 +9,13 @@ mkSystem {
     ./platform/generic.nix
     ./kernel/cachyos.nix
     ./services/dns/smartdns-oversea.nix
+    ./services/web/nginx.nix
     ./profiles/memory/aggressive.nix
+    ./software/container/podman.nix
+    (import ./software/web/alist.nix {
+      enable = true;
+      domain = "alist.tohu.shaog.hk";
+    })
     (import ./profiles/update/auto-upgrade.nix { allowReboot = true; })
     (import ./disk/common.nix { swapSize = 2048; })
     (import ./auth/default.nix {
