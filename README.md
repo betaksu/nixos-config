@@ -14,62 +14,45 @@ export HOST=tohu
 
 # 设置目标服务器的 IP 地址（用于远程安装）
 export TARGET_IP=1.2.3.4
-
-# 设置你的自定义镜像下载链接（仅用于方式一）
-export IMAGE_URL="https://your-domain.com/image.tar.zst"
 ```
 
 ---
 
-## 方式一：构建自定义镜像并一键 DD (VPS 推荐)
+## 创建你自己的主机配置
 
-**适用场景**：VPS（不限内存大小），需要你自己有一个本地的 NixOS 环境（虚拟机或物理机）来构建镜像，还需要一个能够直链下载的文件服务器来托管构建好的镜像。
-**优点**：可以完全定制系统，不受 VPS 提供商救援系统限制，内存占用低。
+默认配置使用 `tohu` 作为演示。如果你需要部署自己的服务器，请先参考文档：
+👉 **[如何创建自己的 NixOS 主机配置](docs/create_your_own_host.md)**
 
-### 1. 下载配置库
-首先下载并解压本配置库到本地 NixOS 环境。
+---
 
-```bash
-# 下载 main 分支的 tar 包并解压，然后进入目录
-curl -L https://github.com/ShaoG-R/nixos-config/archive/refs/heads/main.tar.gz -o config.tar.gz && \
-tar -xzf config.tar.gz && \
-rm config.tar.gz && \
-cd nixos-config-main
-```
 
-### 2. 构建系统镜像
-使用 Nix 构建你的主机配置对应的 Disko 镜像。
-*注意：这里的 `$HOST` 对应你在准备工作中设置的主机名。*
+## 方式一：构建自定义镜像并一键 DD (推荐)
 
-```bash
-# 构建 diskoImages 产物
-nix build .#nixosConfigurations.$HOST.config.system.build.diskoImages
-```
+**适用场景**：VPS，无本地 NixOS 环境，无自备下载服务器。
+**原理**：我们通过使用 GitHub Action 构建和发布，解决了本地 NixOS 环境和自备直链下载服务器的问题。
 
-### 3. 处理镜像文件
-构建完成后，将生成的 raw 镜像复制出来，并使用 zstd 进行高压缩，以便于传输。
+### 1. 获取镜像直链
 
-```bash
-# 将构建结果中的 raw 镜像复制到当前目录，并清理构建链接和垃圾以节省空间
-cp result/main.raw . && rm result && nix-collect-garbage
+本仓库的 `.github/workflows/release.yml` 会自动构建镜像并发布到 Releases。
 
-# 使用 zstd 多线程压缩镜像为 .tar.zst 格式
-# -T0 表示使用所有可用 CPU 核心
-tar -I "zstd -T0" -cf image.tar.zst main.raw
-```
+- **直链地址 (tohu)**：
+  `https://github.com/ShaoG-R/nixos-config/releases/latest/download/tohu.tar.zst`
 
-### 4. 上传镜像
-**手动步骤**：请将生成的 `image.tar.zst` 文件上传到你可以直链下载的服务器或对象存储（如 R2, S3, 或者简单的 HTTP 服务器）。获取该文件的下载链接。
+- **自定义构建**：
+  如果你 Fork 了本仓库，请在 Actions 页面手动触发 `Release System Images` 工作流，构建完成后在 Releases 页面获取你的下载直链。
 
-### 5. 在目标 VPS 上执行 DD
-登录到你的目标 VPS（救援模式或现有系统），下载重装脚本并执行 DD 操作。
+### 2. 在目标 VPS 上执行 DD
+
+登录 VPS 后执行以下命令：
 
 ```bash
-# 下载通用的重装脚本 reinstall.sh
+# 下载重装脚本
 curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh || wget -O ${_##*/} $_
 
-# 执行 DD 命令，将系统替换为你构建的 NixOS 镜像
-# 请确保已设置 IMAGE_URL 环境变量，或直接将链接填入下方命令
+# 设置镜像直链 (请根据实际情况替换 URL)
+export IMAGE_URL="https://github.com/ShaoG-R/nixos-config/releases/latest/download/tohu.tar.zst"
+
+# 执行一键 DD
 bash reinstall.sh dd --img "$IMAGE_URL"
 ```
 
@@ -186,26 +169,4 @@ bash reinstall.sh nixos --password "ChangeMe123"
 
 # 重启开始重装
 reboot
-```
-
----
-
-## 辅助：在其他 Linux 系统获取硬件配置 (facter.json)
-
-如果你需要在非 NixOS 系统上预先获取硬件信息以便生成 `facter.json`：
-
-```bash
-# 1. 安装 Nix
-sh <(curl -L https://nixos.org/nix/install) --daemon
-
-# 2. 配置 Nix
-mkdir -p ~/.config/nix
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-
-# 3. 运行 nixos-facter 生成配置
-nix run \
-  --option experimental-features "nix-command flakes" \
-  --option extra-substituters https://numtide.cachix.org \
-  --option extra-trusted-public-keys numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE= \
-  github:nix-community/nixos-facter -- -o ./facter.json
 ```

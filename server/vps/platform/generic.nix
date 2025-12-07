@@ -22,8 +22,6 @@
   
   # --- 网络配置 ---
   networking = {
-    hostName = lib.mkDefault "nixos-server"; # 给个默认名，允许被覆盖
-
     # true (默认值)：启用 "Predictable Network Interface Names"。系统会根据网卡的物理位置（PCI插槽）命名，如 ens18, enp3s0。
     # false：禁用该功能。内核会按照枚举顺序命名网卡，对于单网卡的 VPS，这几乎 100% 会是 eth0。
     usePredictableInterfaceNames = lib.mkDefault false;

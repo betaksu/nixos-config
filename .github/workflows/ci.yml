@@ -5,10 +5,15 @@ on:
     branches:
       - main
       - rp
+    paths-ignore:
+      - 'README.md'
+      - 'docs/*'
   pull_request:
     branches:
       - main
-      - rp
+    paths-ignore:
+      - 'README.md'
+      - 'docs/*'
   workflow_dispatch:
 
 jobs:
