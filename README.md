@@ -1,174 +1,68 @@
-# NixOS 部署与安装指南
+# NixOS Configuration Library
 
 > **Note**: 当前库是个人配置文件库。若希望寻找模板库方便配置 NixOS，请前往 [https://github.com/ShaoG-R/nixos-config-template](https://github.com/ShaoG-R/nixos-config-template)。
 
-本指南提供了多种安装 NixOS 的方式。请根据你的具体环境（VPS、物理机、已有 Linux 系统等）选择合适的方法。
+欢迎来到我的个人 NixOS 配置文件库。本项目旨在为 VPS 和服务器提供一套高性能、模块化且易于维护的 NixOS 配置方案。
 
-在该配置库中，我们将使用环境变量来代替非固定的参数（如主机名、IP地址等），以便于理解和替换。
+## 📖 文档指南
 
-## 准备工作：设置环境变量
+- **[安装与部署指南](docs/install.md)**: 包含多种安装方式（一键 DD、Anywhere、手动安装）。
+- **[如何创建自己的主机配置](docs/create_your_own_host.md)**: 了解如何添加和定制新的服务器。
 
-在开始之前，请在终端中根据你的实际情况设置以下环境变量。这样后续命令中的变量（如 `$HOST`）就会自动替换为你设置的值。
+## 🏗️ 架构设计
 
-```bash
-# 设置你的目标主机名（对应 flake.nix 中的 nixosConfigurations 名称，例如 tohu）
-export HOST=tohu
+本配置库采用了 **机制 (Mechanism) 与 策略 (Strategy) 分离** 的设计思想，确保配置的高度复用性和灵活性。
 
-# 设置目标服务器的 IP 地址（用于远程安装）
-export TARGET_IP=1.2.3.4
+### 核心机制 (`server/vps.nix`)
+`mkSystem` 函数封装了构建 NixOS 系统的通用逻辑。它并不关心具体开启了哪些服务，而是提供了一个标准的接口来接收配置：
+- `system`: 目标系统架构 (如 `x86_64-linux`)。
+- `diskDevice`: 目标磁盘设备。
+- `extraModules`: 一个模块列表，用于定义该主机特有的功能（策略）。
+
+### 策略实现 (`server/vps/*.nix`)
+每个主机配置文件（如 `server/vps/tohu.nix`）代表一种具体的策略。它通过组合不同的模块来定义服务器的角色和功能。
+
+例如，`tohu` 主机的定义：
+```nix
+mkSystem {
+  # ...
+  extraModules = [
+    ./platform/generic.nix             # 通用基础配置
+    ./kernel/cachyos.nix               # 高性能内核
+    ./services/dns/smartdns-oversea.nix # DNS 优化
+    ./profiles/memory/aggressive.nix   # 内存激进优化
+    ./software/web/alist.nix           # 具体业务服务
+    # ...
+  ];
+}
 ```
 
----
+## ✨ 关键特性模块
 
-## 创建你自己的主机配置
+本库包含多个精心调优的模块，开箱即用：
 
-默认配置使用 `tohu` 作为演示。如果你需要部署自己的服务器，请先参考文档：
-👉 **[如何创建自己的 NixOS 主机配置](docs/create_your_own_host.md)**
+### 🚀 高性能内核与网络 (`server/vps/kernel/cachyos.nix`)
+- **CachyOS 内核**: 采用 CachyOS 优化的内核，提供更好的调度性能。
+- **BBRv3 + CAKE**:默认启用 BBRv3 拥塞控制算法配合 CAKE 队列管理，显著降低 bufferbloat，提升弱网环境下的吞吐量和延迟表现。
+- **TCP 协议栈调优**: 针对现代网络环境优化了 TCP 窗口大小、Fast Open、连接追踪表等参数。
 
----
+### 🌐 DNS 优化 (`server/vps/services/dns/smartdns-oversea.nix`)
+- **SmartDNS**: 使用 SmartDNS 作为本地 DNS 解析器。
+- **并行查询与测速**: 并发查询多个上游 DNS（如 Cloudflare, Google, Quad9），并基于 ping 和 tcp 握手进行测速，自动选择最快的 IP 地址返回。
+- **持久化缓存**: 配置了激进的缓存策略和预取功能，极大减少 DNS 查询延迟。
 
+### 💾 内存优化 (`server/vps/profiles/memory/aggressive.nix`)
+- **ZRAM**: 针对小内存 VPS（如 1GB 甚至更小），启用了激进的 ZRAM 策略 (`zstd` 压缩)，将内存当做高速 Swap 使用。
+- **内核参数调优**: 调整 `vm.swappiness` 和 `vm.vfs_cache_pressure`，倾向于保留文件缓存并积极使用 ZRAM，配合 MGLRU 算法，防止系统在内存压力大时假死。
 
-## 方式一：构建自定义镜像并一键 DD (推荐)
+### 🐳 容器化支持 (`server/vps/software/container/podman.nix`)
+- **Podman**: 默认使用 Podman 替代 Docker，提供更轻量级的容器运行环境。
+- **OCI Containers**: 通过 NixOS 模块声明式管理容器（如 AList），支持自动启动、卷挂载和网络配置。
 
-**适用场景**：VPS，无本地 NixOS 环境，无自备下载服务器。
-**原理**：我们通过使用 GitHub Action 构建和发布，解决了本地 NixOS 环境和自备直链下载服务器的问题。
+### 🔒 安全与认证 (`server/vps/auth/default.nix`)
+- **声明式凭证**: Root 密码和 SSH 公钥通过 Nix 配置文件统一管理，部署即生效。
+- **SSH 加固**: 默认仅允许 Key 登录，禁用空密码，符合安全最佳实践。
 
-### 1. 获取镜像直链
-
-本仓库的 `.github/workflows/release.yml` 会自动构建镜像并发布到 Releases。
-
-- **直链地址 (tohu)**：
-  `https://github.com/ShaoG-R/nixos-config/releases/latest/download/tohu.tar.zst`
-
-- **自定义构建**：
-  如果你 Fork 了本仓库，请在 Actions 页面手动触发 `Release System Images` 工作流，构建完成后在 Releases 页面获取你的下载直链。
-
-### 2. 在目标 VPS 上执行 DD
-
-登录 VPS 后执行以下命令：
-
-```bash
-# 下载重装脚本
-curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh || wget -O ${_##*/} $_
-
-# 设置镜像直链 (请根据实际情况替换 URL)
-export IMAGE_URL="https://github.com/ShaoG-R/nixos-config/releases/latest/download/tohu.tar.zst"
-
-# 执行一键 DD
-bash reinstall.sh dd --img "$IMAGE_URL"
-```
-
----
-
-## 方式二：正规恢复环境下安装 (Standard Install)
-
-**适用场景**：由于需要运行 Nix 编译，建议内存 > 4G (不包含 Swap)。适用于处于救援模式或 LiveCD 环境下的机器。
-
-### 1. 准备 Nix 环境
-在救援系统中安装 Nix 包管理器并启用必要的特性。
-
-```bash
-# 创建配置目录
-mkdir -p ~/.config/nix
-
-# 启用 flakes 和 nix-command 实验性功能
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-```
-
-### 2. 下载配置库
-
-```bash
-# 下载配置库并解压
-curl -L https://github.com/ShaoG-R/nixos-config/archive/refs/heads/main.tar.gz -o config.tar.gz && \
-tar -xzf config.tar.gz && \
-rm config.tar.gz && \
-cd nixos-config-main
-```
-
-### 3. 生成硬件配置
-使用 `nixos-facter` 自动检测硬件并生成配置文件。
-
-```bash
-# 运行 nixos-facter 并将结果保存到指定主机的 facter 目录中
-sudo nix run \
-  --option experimental-features "nix-command flakes" \
-  --option extra-substituters https://numtide.cachix.org \
-  --option extra-trusted-public-keys numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE= \
-  github:nix-community/nixos-facter -- -o server/vps/facter/$HOST.json
-```
-
-### 4. 磁盘分区与安装
-使用 Disko 进行分区并安装系统。
-
-```bash
-# 使用 Disko 根据配置对磁盘进行分区和格式化
-# --mode disko: 执行实际的磁盘操作
-nix run github:nix-community/disko -- --mode disko --flake .#$HOST
-
-# 安装 NixOS 系统到挂载点
-# --no-root-passwd: 不设置 root 密码（假设配置中已通过 SSH Key 等方式验证）
-# --show-trace: 出错时显示详细堆栈
-nixos-install --flake .#$HOST --no-root-passwd --show-trace
-```
-
----
-
-## 方式三：nixos-anywhere 远程安装
-
-**适用场景**：你有一台本地机器（安装了 Nix），并且可以通过 SSH root 登录到目标 VPS。适合批量部署或不想进入救援模式操作的情况。
-
-### 1. 准备本地环境
-
-```bash
-# 确保本地已配置好 nix 和 flakes
-mkdir -p ~/.config/nix
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-```
-
-### 2. 配置 SSH 免密登录
-如果还没有 SSH Key，请先生成。
-```bash
-# ssh-keygen -t ed25519 -C "root@$HOST"
-```
-
-将公钥复制到目标机器：
-```bash
-# 将本地 SSH 公钥复制到目标机器的 root 用户
-ssh-copy-id root@$TARGET_IP
-```
-
-### 3. 下载配置并远程安装
-在本地机器上执行安装命令。
-
-```bash
-# 下载并解压配置库
-curl -L https://github.com/ShaoG-R/nixos-config/archive/refs/heads/main.tar.gz -o config.tar.gz && \
-tar -xzf config.tar.gz && \
-rm config.tar.gz && \
-cd nixos-config-main
-
-# 使用 nixos-anywhere 远程部署
-# --build-on local: 在本地构建系统闭包，然后上传到服务器（减少服务器负载）
-nix run github:nix-community/nixos-anywhere -- \
-  --flake .#$HOST \
-  --target-host root@$TARGET_IP \
-  --build-on local
-```
-
----
-
-## 方式四：通用一键脚本 (Minimal)
-
-**适用场景**：想快速重装为标准的 NixOS 基础系统，不使用自定义配置。
-
-```bash
-# 下载重装脚本
-curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh || wget -O ${_##*/} $_
-
-# 运行脚本安装 NixOS
-# --password: 设置 root 密码
-bash reinstall.sh nixos --password "ChangeMe123"
-
-# 重启开始重装
-reboot
-```
+### 🛠️ 自动化分区 (`server/vps/disk/common.nix`)
+- **Disko 集成**: 使用 Disko 声明磁盘分区结构（GPT, ESP, Btrfs subvolumes, Swap），实现一键分区和格式化。
+- **Btrfs**: 根分区采用 Btrfs，并配置了 zstd 压缩，节省磁盘空间并提升读写寿命。
