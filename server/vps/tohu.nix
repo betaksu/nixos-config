@@ -32,6 +32,12 @@ let
             (import ./kernel/cachyos-unstable.nix { inherit pkgs inputs; })
           ];
 
+          nixpkgs.overlays = lib.mkForce [ 
+            inputs.chaotic.overlays.default 
+          ];
+
+          nixpkgs.pkgs = lib.mkForce null;
+
           # 3. 模拟环境适配 (Mock)
           # 因为没有导入硬件配置，我们需要补充一些基础设置
           networking.hostName = "tohu-test";
