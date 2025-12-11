@@ -7,7 +7,7 @@ mkSystem {
   diskDevice = "/dev/sda";
   extraModules = [
     ./platform/generic.nix
-    ./kernel/cachyos.nix
+    ./kernel/cachyos-unstable.nix
     ./services/dns/smartdns-oversea.nix
     ./services/web/nginx.nix
     ./profiles/memory/aggressive.nix
@@ -35,8 +35,7 @@ mkSystem {
       networking.hostName = "tohu";
       facter.reportPath = ./facter/tohu.json;
       system.stateVersion = "25.11";
-      # 启用 copyFlakeToNixos 模块，用于初始化 /etc/nixos
-      system.copyFlakeToNixos.enable = true;
+      environment.etc."nixos".source = inputs.self;
     })
   ];
 }

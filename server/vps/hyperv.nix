@@ -17,12 +17,11 @@ mkSystem {
       authorizedKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBaNS9FByCEaDjPOUpeQZg58zM2wD+jEY6SkIbE1k3Zn ed25519 256-20251206 shaog@duck.com" ];
     })
     (import ./network/single-interface/dhcp.nix)
-    {
+    ({ inputs, ... }: {
       networking.hostName = "hyperv";
       facter.reportPath = ./facter/hyperv.json;
       system.stateVersion = "25.11"; 
-      # 启用 copyFlakeToNixos 模块，用于初始化 /etc/nixos
-      system.copyFlakeToNixos.enable = true;
-    }
+      environment.etc."nixos".source = inputs.self;
+    })
   ];
 }
