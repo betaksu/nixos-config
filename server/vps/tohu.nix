@@ -31,12 +31,21 @@ mkSystem {
         prefixLength = 24;
         gateway = "66.235.104.1";
     })
-    {
+    ({ inputs, ... }: {
       networking.hostName = "tohu";
       facter.reportPath = ./facter/tohu.json;
       system.stateVersion = "25.11";
-      # 用于生成raw镜像时复制系统配置
-      system.copySystemConfiguration = true;
-    }
+
+      system.activationScripts.copy-nixos-config = {
+        text = ''
+          if [ ! -f /etc/nixos/flake.nix ]; then
+            echo "Initializing /etc/nixos from flake source..."
+            mkdir -p /etc/nixos
+            cp -rT --no-preserve=mode ${inputs.self} /etc/nixos
+            chmod -R u+w /etc/nixos
+          fi
+        '';
+      };
+    })
   ];
 }
