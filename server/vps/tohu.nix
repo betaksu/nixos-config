@@ -31,19 +31,22 @@ mkSystem {
         prefixLength = 24;
         gateway = "66.235.104.1";
     })
-    {
+    ({ inputs, ... }: {
       networking.hostName = "tohu";
       facter.reportPath = ./facter/tohu.json;
       system.stateVersion = "25.11";
-      systemd.tmpfiles.rules = [
-        # 语法: 类型 路径 模式 用户 组 参数(源)
-        # C = 从源复制内容 (Copy)
-        "C /etc/nixos - - - - ${inputs.self}"
-        
-        # z = 调整权限 (递归)
-        "z /etc/nixos 0755 root root -"
-        "Z /etc/nixos - root root -"  # 递归调整内部文件
-      ];
-    }
+
+      system.activationScripts.copy-nixos-config = {
+        text = ''
+          if [ ! -f /etc/nixos/flake.nix ]; then
+            echo "Initializing /etc/nixos from flake source..."
+            mkdir -p /etc/nixos
+            # --no-preserve=mode 确保复制后文件不是只读的
+            cp -rT --no-preserve=mode ${inputs.self} /etc/nixos
+            chmod -R u+w /etc/nixos
+          fi
+        '';
+      };
+    })
   ];
 }
