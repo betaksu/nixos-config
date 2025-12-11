@@ -35,6 +35,7 @@ mkSystem {
       networking.hostName = "tohu";
       facter.reportPath = ./facter/tohu.json;
       system.stateVersion = "25.11";
+      system.copySystemConfiguration = true;
     }
   ];
 }
