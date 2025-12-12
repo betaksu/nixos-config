@@ -1,7 +1,0 @@
-builds:
-  include:
-    # Root flake (library modules)
-    - "."
-    # VPS configurations
-    - "vps/tohu"
-    - "vps/hyperv"

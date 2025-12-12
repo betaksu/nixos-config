@@ -64,21 +64,21 @@
             };
         })
         
-        # 4. 内联测试模块
-        ({ config, pkgs, ... }: {
+        # 4. 内联测试模块 (XanMod 不需要 chaotic overlay)
+        ({ config, pkgs, inputs, ... }: {
           system.build.vmTest = pkgs.testers.runNixOSTest {
             name = "hyperv-inline-test";
-            node.specialArgs = { inputs = my-lib.inputs; };
-            node.pkgs = nixpkgs.lib.mkForce pkgs;
+            
             nodes.machine = { config, lib, ... }: {
                 imports = [ 
                     my-lib.nixosModules.default 
                     commonConfig
                 ];
 
-                # node.pkgs 已包含 overlay，禁止模块再次设置
+                # 清空 overlays，避免与 runNixOSTest 只读设置冲突
                 nixpkgs.overlays = lib.mkForce [];
-                nixpkgs.hostPlatform = "x86_64-linux";
+                
+                _module.args.inputs = inputs;
                 
                 networking.hostName = "hyperv-test";
             };
