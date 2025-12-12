@@ -87,28 +87,30 @@
         })
         
         # 4. 内联测试模块
+        # 使用 nixosTest 而非 runNixOSTest，因为后者会将 nixpkgs.* 设为只读
         ({ config, pkgs, ... }: 
         let
-          # 在测试框架层面构建带 chaotic overlay 的 pkgs
-          # 这样可以避免与 read-only.nix 的冲突
+          # 构建带 chaotic overlay 的 pkgs
           testPkgs = import my-lib.inputs.nixpkgs {
             system = "x86_64-linux";
             config.allowUnfree = true;
             overlays = [ my-lib.inputs.chaotic.overlays.default ];
           };
         in {
-          system.build.vmTest = pkgs.testers.runNixOSTest {
+          system.build.vmTest = pkgs.nixosTest {
             name = "tohu-inline-test";
-            
-            # 在框架层面设置 pkgs，而不是在模块中设置
-            node.pkgs = testPkgs;
-            node.specialArgs = { inputs = my-lib.inputs; isImportChaotic = false; };
             
             nodes.machine = { config, lib, ... }: {
                 imports = [ 
                     my-lib.nixosModules.default 
                     commonConfig
                 ];
+                
+                # nixosTest 允许设置 nixpkgs.pkgs
+                nixpkgs.pkgs = testPkgs;
+                
+                _module.args.inputs = my-lib.inputs;
+                _module.args.isImportChaotic = false;
                 
                 networking.hostName = "tohu-test";
             };
