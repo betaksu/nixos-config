@@ -99,8 +99,8 @@
                     commonConfig
                 ];
                 
-                # 使用 chaotic overlay（不能设置 nixpkgs.pkgs，因为 hostPlatform 是只读的）
-                nixpkgs.overlays = [ my-lib.inputs.chaotic.overlays.default ];
+                # 使用 chaotic overlay（nixpkgs.* 选项在测试框架中是只读的，需要 mkForce）
+                nixpkgs.overlays = lib.mkForce [ my-lib.inputs.chaotic.overlays.default ];
                 
                 networking.hostName = "tohu-test";
             };
