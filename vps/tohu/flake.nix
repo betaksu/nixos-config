@@ -88,14 +88,7 @@
         
         # 4. 内联测试模块
         ({ config, pkgs, ... }: 
-        let
-          # 手动创建带有 chaotic overlay 的 pkgs，避免模块冲突
-          pkgsWithChaotic = import my-lib.inputs.nixpkgs {
-            system = "x86_64-linux";
-            config.allowUnfree = true;
-            overlays = [ my-lib.inputs.chaotic.overlays.default ];
-          };
-        in {
+        {
           system.build.vmTest = pkgs.testers.runNixOSTest {
             name = "tohu-inline-test";
             node.specialArgs = { inputs = my-lib.inputs; isImportChaotic = false; };
@@ -106,9 +99,8 @@
                     commonConfig
                 ];
                 
-                # 使用手动创建的 pkgs，并清空 overlays（已在 pkgs 中）
-                nixpkgs.pkgs = lib.mkForce pkgsWithChaotic;
-                nixpkgs.overlays = lib.mkForce [];
+                # 使用 chaotic overlay（不能设置 nixpkgs.pkgs，因为 hostPlatform 是只读的）
+                nixpkgs.overlays = [ my-lib.inputs.chaotic.overlays.default ];
                 
                 networking.hostName = "tohu-test";
             };
