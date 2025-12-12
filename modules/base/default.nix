@@ -8,7 +8,6 @@ in {
     ./container.nix
     ./dns/smartdns.nix
     ./memory.nix
-    ./performance/kernel.nix
     ./performance/tuning.nix
     ./update.nix
   ];

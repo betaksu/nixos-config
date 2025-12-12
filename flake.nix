@@ -30,6 +30,11 @@
         # 将 inputs 注入到模块系统中，方便子模块使用
         _module.args.inputs = inputs;
       };
+      
+      # 2. 细分导出 - 内核优化模块（需单独导入以避免 chaotic 模块冲突）
+      kernel-cachyos = ./modules/kernel/cachyos.nix;
+      kernel-cachyos-unstable = ./modules/kernel/cachyos-unstable.nix;
+      kernel-xanmod = ./modules/kernel/xanmod.nix;
     };
   };
 }

@@ -20,8 +20,7 @@
             swapSize = 2048;
         };
         
-        # Kernel & Performance
-        my.performance.kernel.mode = "cachyos-unstable";
+        # Performance
         my.performance.tuning.enable = true;
         my.memory.mode = "aggressive";
         
@@ -41,10 +40,11 @@
   {
     nixosConfigurations.tohu = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inputs = my-lib.inputs; isImportChaotic = true; };
+      specialArgs = { inputs = my-lib.inputs; };
       modules = [
         # 1. 引入我们的模块库
         my-lib.nixosModules.default
+        my-lib.nixosModules.kernel-cachyos-unstable
         
         # 2. 通用配置
         commonConfig
@@ -103,6 +103,7 @@
             nodes.machine = { config, lib, ... }: {
                 imports = [ 
                     my-lib.nixosModules.default 
+                    my-lib.nixosModules.kernel-cachyos-unstable
                     commonConfig
                 ];
                 
@@ -110,7 +111,6 @@
                 nixpkgs.pkgs = testPkgs;
                 
                 _module.args.inputs = my-lib.inputs;
-                _module.args.isImportChaotic = false;
                 
                 networking.hostName = "tohu-test";
             };

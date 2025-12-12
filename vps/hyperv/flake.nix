@@ -20,8 +20,7 @@
             swapSize = 4096;
         };
         
-        # Kernel & Performance
-        my.performance.kernel.mode = "xanmod";
+        # Performance
         my.performance.tuning.enable = true;
         my.memory.mode = "conservative";
         
@@ -38,10 +37,11 @@
   {
     nixosConfigurations.hyperv = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inputs = my-lib.inputs; isImportChaotic = false; };
+      specialArgs = { inputs = my-lib.inputs; };
       modules = [
         # 1. 引入我们的模块库
         my-lib.nixosModules.default
+        my-lib.nixosModules.kernel-xanmod
         
         # 2. 通用配置
         commonConfig
@@ -79,6 +79,7 @@
             nodes.machine = { config, lib, ... }: {
                 imports = [ 
                     my-lib.nixosModules.default 
+                    my-lib.nixosModules.kernel-xanmod
                     commonConfig
                 ];
                 
@@ -86,7 +87,6 @@
                 nixpkgs.pkgs = testPkgs;
                 
                 _module.args.inputs = my-lib.inputs;
-                _module.args.isImportChaotic = false;
                 
                 networking.hostName = "hyperv-test";
             };
