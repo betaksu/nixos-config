@@ -98,7 +98,7 @@
         in {
           system.build.vmTest = pkgs.testers.runNixOSTest {
             name = "tohu-inline-test";
-            node.specialArgs = { inputs = my-lib.inputs; };
+            node.specialArgs = { inputs = my-lib.inputs; isTest = true; };
             
             nodes.machine = { config, lib, ... }: {
                 imports = [ 
