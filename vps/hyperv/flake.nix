@@ -68,7 +68,9 @@
         ({ config, pkgs, ... }: {
           system.build.vmTest = pkgs.testers.runNixOSTest {
             name = "hyperv-inline-test";
+            hostPkgs = pkgs;
             node.specialArgs = { inputs = my-lib.inputs; };
+            node.pkgs = pkgs;
             nodes.machine = { config, lib, ... }: {
                 imports = [ 
                     my-lib.nixosModules.default 
