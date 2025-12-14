@@ -64,13 +64,19 @@
       machine.wait_for_unit("podman.socket")
       
       # 验证内核版本
-      machine.succeed("uname -r")
+      kernel_version = machine.succeed("uname -r").strip()
+      print(f"Kernel version: {kernel_version}")
       
-      # 验证 BBR 拥塞控制算法
-      machine.succeed("sysctl net.ipv4.tcp_congestion_control | grep bbr")
+      # 验证 BBR 拥塞控制算法已启用
+      congestion = machine.succeed("sysctl -n net.ipv4.tcp_congestion_control").strip()
+      assert congestion == "bbr", f"Expected bbr, got {congestion}"
+      print(f"TCP congestion control: {congestion}")
       
-      # 验证 TCP BBR 模块加载
-      machine.succeed("lsmod | grep tcp_bbr")
+      # 验证 BBR 在可用拥塞控制算法列表中
+      # 注意: CachyOS 内核将 BBR 内置编译，所以不能用 lsmod 检查
+      available = machine.succeed("cat /proc/sys/net/ipv4/tcp_available_congestion_control").strip()
+      assert "bbr" in available, f"bbr not in available algorithms: {available}"
+      print(f"Available congestion controls: {available}")
     '';
     
     # ============================================================
