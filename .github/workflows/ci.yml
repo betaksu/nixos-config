@@ -85,21 +85,13 @@ jobs:
           name: chaotic-nyx
           skipPush: true
 
-      # 检查根 flake 的语法和评估
-      - name: Check root flake
-        run: nix flake check --no-build
-
-      # 检查 core flake
-      - name: Check core flake
-        run: nix flake check --no-build --flake ./core
-
-      # 检查 extra/kernel/cachyos flake
-      - name: Check extra/kernel/cachyos flake
-        run: nix flake check --no-build --flake ./extra/kernel/cachyos
-
-      # 检查 extra/kernel/cachyos-unstable flake
-      - name: Check extra/kernel/cachyos-unstable flake
-        run: nix flake check --no-build --flake ./extra/kernel/cachyos-unstable
+      # 检查所有 flake 的语法和评估
+      - name: Check all flakes
+        run: |
+          nix flake check --no-build
+          nix flake check --no-build ./core
+          nix flake check --no-build ./extra/kernel/cachyos
+          nix flake check --no-build ./extra/kernel/cachyos-unstable
 
   # ============================================================
   # 任务 3: VM 集成测试 (三种内核配置)
