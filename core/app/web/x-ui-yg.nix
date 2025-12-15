@@ -82,8 +82,6 @@ in {
     # 也不需要再手动允许 UDP 443 端口，nginx.nix 会自动处理
     core.app.web.nginx.sites = mkIf (cfg.domain != null) {
       "${cfg.domain}" = {
-        forceSSL = true;
-        enableACME = true;
         http3 = true;
         quic = true;
         
