@@ -24,14 +24,7 @@ jobs:
           fetch-depth: 0
 
       - name: Modify String (Prepare for Main)
-        run: |
-          # Replace github:ShaoG-R/nixos-config/pre-release with github:ShaoG-R/nixos-config
-          sed -i 's|github:ShaoG-R/nixos-config/pre-release|github:ShaoG-R/nixos-config|g' flake.nix vps/tohu/flake.nix vps/hyperv/flake.nix
-          
-          # Verify replacement
-          grep "github:ShaoG-R/nixos-config" flake.nix || true
-          grep "github:ShaoG-R/nixos-config" vps/tohu/flake.nix || true
-          grep "github:ShaoG-R/nixos-config" vps/hyperv/flake.nix || true
+        uses: ./.github/actions/replace-release-string
 
       - name: Commit and Force Push
         run: |

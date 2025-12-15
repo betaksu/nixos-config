@@ -4,25 +4,20 @@ on:
   schedule:
     # 北京时间凌晨 3:40 (UTC 19:40)
     - cron: '40 19 * * *'
-  workflow_dispatch: # 允许手动触发
-  workflow_call: # 允许被其他工作流调用
-  push:
-    branches:
-      - pre-release
-
-permissions:
-  contents: write
-  pull-requests: write
 
 jobs:
-  update-lockfile:
-    if: >-
-      github.event_name != 'push' ||
-      !contains(github.event.head_commit.message, 'chore: update flake.lock')
+  update-lock:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
-      - name: Checkout repository
+      - name: Checkout pre-release
         uses: actions/checkout@v6
+        with:
+          ref: pre-release
+          fetch-depth: 0
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
@@ -32,39 +27,55 @@ jobs:
             download-buffer-size = 1073741824
 
       - name: Setup Cachix
-        uses: cachix/cachix-action@v15
+        uses: cachix/cachix-action@v16
         with:
           name: chaotic-nyx
           skipPush: true
-    
-      - name: Update flake.lock
-        run: |
-          nix flake update --flake ./core
-          nix flake update --flake ./extra/kernel/cachyos
-          nix flake update --flake ./extra/kernel/cachyos-unstable
-          nix flake update
-          nix flake update --flake ./vps/tohu
-          nix flake update --flake ./vps/hyperv
 
-      - name: Create Pull Request
+      - name: Check divergence from main
+        id: check_ahead
+        run: |
+          git fetch origin main
+          count=$(git rev-list --count origin/main..HEAD)
+          echo "Ahead count: $count"
+          if [ "$count" -eq "0" ]; then
+            echo "is_ahead=false" >> $GITHUB_OUTPUT
+          else
+            echo "is_ahead=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update flake.lock
+        uses: ./.github/actions/update-flake-lock
+
+      # 场景 1：如果存在 Ahead Commit，直接 Commit 并 Push 到 pre-release
+      - name: Commit & Push to pre-release (If Ahead)
+        if: steps.check_ahead.outputs.is_ahead == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update flake.lock"
+          branch: pre-release
+
+      # 场景 2：如果不存在 Ahead Commit，通过 PR 合并到 main
+      - name: Prepare for Main (If Not Ahead)
+        if: steps.check_ahead.outputs.is_ahead == 'false'
+        uses: ./.github/actions/replace-release-string
+
+      - name: Create PR to main (If Not Ahead)
+        if: steps.check_ahead.outputs.is_ahead == 'false'
         id: cpr
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.PAT }}
           
           commit-message: "chore: update flake.lock"
           title: "chore: update flake.lock"
-          body: |
-            Automated update of flake.lock.
-            
-            This PR will be automatically merged if the CI pipeline passes.
-          branch: "auto-update-flake-lock-${{ github.ref_name }}"
-          base: "${{ github.ref_name }}"
+          body: "Automatic update of flake.lock from pre-release state (synced with main)."
+          branch: "chore/update-flake-lock"
+          base: main
           delete-branch: true
 
-      - name: Enable Pull Request Automerge
-        # 仅当成功创建了 PR 时运行 (防止死循环：如果没有新更新，也就不会创建 PR，流程结束)
-        if: steps.cpr.outputs.pull-request-operation == 'created'
+      - name: Enable Auto Merge for PR
+        if: steps.check_ahead.outputs.is_ahead == 'false' && steps.cpr.outputs.pull-request-operation == 'created'
         run: gh pr merge --auto --merge "${{ steps.cpr.outputs.pull-request-number }}"
         env:
           # 这里的 Token 必须有写权限，GITHUB_TOKEN 足够用于开启自动合并

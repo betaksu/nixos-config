@@ -38,26 +38,15 @@ jobs:
 
       # 更新所有子 flake 和根目录的 lock 文件
       - name: Update all flake.lock files
-        run: |
-          nix flake update --flake ./core
-          nix flake update --flake ./extra/kernel/cachyos
-          nix flake update --flake ./extra/kernel/cachyos-unstable
-          nix flake update --flake .
-          nix flake update --flake ./vps/hyperv
-          nix flake update --flake ./vps/tohu
+        id: update-locks
+        uses: ./.github/actions/update-flake-lock
 
       # 上传更新后的 lock 文件作为 artifact
       - name: Upload updated flake.lock files
         uses: actions/upload-artifact@v4
         with:
           name: flake-locks
-          path: |
-            flake.lock
-            core/flake.lock
-            extra/kernel/cachyos/flake.lock
-            extra/kernel/cachyos-unstable/flake.lock
-            vps/hyperv/flake.lock
-            vps/tohu/flake.lock
+          path: ${{ steps.update-locks.outputs.lock-file-paths }}
           retention-days: 1
 
   # ============================================================
