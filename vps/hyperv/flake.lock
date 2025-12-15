@@ -41,7 +41,6 @@
       "original": {
         "dir": "core",
         "owner": "ShaoG-R",
-        "ref": "pre-release",
         "repo": "nixos-config",
         "type": "github"
       }

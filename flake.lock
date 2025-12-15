@@ -204,7 +204,6 @@
       "original": {
         "dir": "extra/kernel/cachyos",
         "owner": "ShaoG-R",
-        "ref": "pre-release",
         "repo": "nixos-config",
         "type": "github"
       }
@@ -228,7 +227,6 @@
       "original": {
         "dir": "extra/kernel/cachyos-unstable",
         "owner": "ShaoG-R",
-        "ref": "pre-release",
         "repo": "nixos-config",
         "type": "github"
       }
