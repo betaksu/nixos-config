@@ -1,23 +1,46 @@
 {
-  description = "hyperv Configuration";
+  description = "Hyperv 临时配置";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     lib-core.url = "path:../../core";
     lib-core.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, nixpkgs, lib-core, ... }: 
   let
+    system = "x86_64-linux";
+
+    # ==========================================
+    # Host Configuration (集中配置区域)
+    # ==========================================
+    hostConfig = {
+      name = "hyperv";
+
+      auth = {
+        # 你的 Hash 密码
+        rootHash = "$6$2uszfzQPOrqrAJW2$1wf8MrTFuMzTkWy5G/NFiQatq0dYVfluJ7CrS/7B88pPuqFzDWrOgNNPwWulAUhIrLpyS5Phn.KNVda81MWc70";
+        # SSH Keys
+        sshKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA6I0JKhTjQEK7WDQUPRUGXq3oV7tWwrRtSyM6tnub/Q ed25519 256-20251217 shaog@duck.com" ];
+      };
+    };
+    # ==========================================
+
+    testPkgs = import lib-core.inputs.nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+    };
+
     commonConfig = { config, pkgs, ... }: {
         system.stateVersion = "25.11"; 
         core.base.enable = true;
+        
+        boot.kernelPackages = pkgs.linuxPackages_5_15;
         
         # Hardware
         core.hardware.type = "vps";
         core.hardware.disk = {
             enable = true;
-            swapSize = 4096;
         };
         
         # Performance
@@ -32,23 +55,50 @@
             enable = true;
             allowReboot = true;
         };
+
+        ###################### 以下是开发环境配置 ######################
+
+        # 启用 nix-ld
+        # 这是在 NixOS 上运行 VS Code Remote Server 的现代标准解决方案
+        programs.nix-ld.enable = true;
+        programs.nix-ld.libraries = with pkgs; [
+            # VS Code Server 需要的一些常见库
+            stdenv.cc.cc
+            zlib
+            openssl
+            glib
+            # ... 其他库通常 nix-ld 会自动处理大部分
+        ];
+
+        # 安装并启用 direnv
+        # 这让系统能识别 .envrc 文件，自动加载 flake 环境
+        programs.direnv = {
+            enable = true;
+            nix-direnv.enable = true; # 启用 nix 集成，速度更快
+        };
+
+        # 确保系统包里有 git (flake 需要)
+        environment.systemPackages = with pkgs; [
+            git
+            vim
+            wget
+        ];
     };
   in
   {
-    nixosConfigurations.hyperv = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
+    nixosConfigurations.${hostConfig.name} = nixpkgs.lib.nixosSystem {
+      inherit system;
       specialArgs = { inputs = lib-core.inputs; };
       modules = [
         # 1. 引入我们的模块库
         lib-core.nixosModules.default
-        lib-core.nixosModules.kernel-xanmod
         
         # 2. 通用配置
         commonConfig
         
         # 3. 硬件/Host特有配置 (Production)
         ({ config, pkgs, modulesPath, ... }: {
-            networking.hostName = "hyperv";
+            networking.hostName = hostConfig.name;
             facter.reportPath = ./facter.json;
             
             core.hardware.network.single-interface = {
@@ -56,30 +106,23 @@
                 dhcp.enable = true;
             };
             
-            # Auth
+            # Auth - 集中引用
             core.auth.root = {
-                mode = "permit_passwd";
-                initialHashedPassword = "$6$DhwUDApjyhVCtu4H$mr8WIUeuNrxtoLeGjrMqTtp6jQeQIBuWvq/.qv9yKm3T/g5794hV.GhG78W2rctGDaibDAgS9X9I9FuPndGC01";
-                authorizedKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBaNS9FByCEaDjPOUpeQZg58zM2wD+jEY6SkIbE1k3Zn ed25519 256-20251206 shaog@duck.com" ];
+                mode = "default"; # Key-based only
+                initialHashedPassword = hostConfig.auth.rootHash;
+                authorizedKeys = hostConfig.auth.sshKeys;
             };
         })
         
-        # 4. 内联测试模块 (XanMod 不需要 chaotic overlay)
+        # 4. 内联测试模块
         # 使用 testers.nixosTest 而非 runtesters.nixosTest，因为后者会将 nixpkgs.* 设为只读
-        ({ config, pkgs, ... }: 
-        let
-          testPkgs = import lib-core.inputs.nixpkgs {
-            system = "x86_64-linux";
-            config.allowUnfree = true;
-          };
-        in {
+        ({ config, pkgs, ... }: {
           system.build.vmTest = pkgs.testers.nixosTest {
-            name = "hyperv-inline-test";
+            name = "${hostConfig.name}-inline-test";
             
             nodes.machine = { config, lib, ... }: {
                 imports = [ 
                     lib-core.nixosModules.default 
-                    lib-core.nixosModules.kernel-xanmod
                     commonConfig
                 ];
                 
@@ -89,12 +132,17 @@
                 # testers.nixosTest 不支持 specialArgs，需要在这里注入 inputs
                 _module.args.inputs = lib-core.inputs;
                 
-                networking.hostName = "hyperv-test";
+                networking.hostName = "${hostConfig.name}-test";
             };
             testScript = ''
               start_all()
               machine.wait_for_unit("multi-user.target")
               machine.wait_for_unit("podman.socket")
+              
+              # Check kernel version
+              kernel_version = machine.succeed("uname -r").strip()
+              print(f"Kernel version: {kernel_version}")
+              assert kernel_version.startswith("5.15"), f"Expected kernel 5.15, but got {kernel_version}"
             '';
           };
         })
