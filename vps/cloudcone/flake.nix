@@ -22,9 +22,9 @@
 
       auth = {
         # 你的 Hash 密码
-        rootHash = "$6$TRZIq7fuvInfHmPR$aownw17xjmJ0ZziV.oIpcaWpdCxndZ/zTiWatFS5gblbagK08eagNJcj78NMhieGEIKI2XvBD0vfx4OMWIHco.";
+        rootHash = "$6$n1p6xsnD2xDbJbBg$WJ6wW2nwsi9UUSjTzN.oQVTWV9M05Qk3OGV2zjUXeembpUog.w3E5.uzu4XEoqtWVciRbz8UulJOo/jNwi6yY.";
         # SSH Keys
-        sshKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKoWKVpkKI/XjU9UPjdHwB7a1bVMUk0/me8iS2gGewkn ed25519 256-20251215 shaog@duck.com" ];
+        sshKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGt4r+vxF5l4riWc9qqNmGG8qAeqxXXA6DaD+MWj14bZ ed25519 256-20251224 shaog@duck.com" ];
       };
 
       ipv4 = {
@@ -51,6 +51,7 @@
         core.hardware.type = "vps";
         core.hardware.disk = {
             enable = true;
+            device = "/dev/vda";
             swapSize = 2048;
         };
         
@@ -111,34 +112,36 @@
                 };
             };
 
-            # cat /run/hysteria/config.yaml 获取 auth 密码
             core.app.hysteria = {
               enable = true;
               backend = "podman";
-              # 动态拼接域名: cloudcone.hy.shaog.uk
-              domain = "${hostConfig.name}.hy.${hostConfig.domainRoot}";
-              
-              portHopping = {
-                enable = true;
-                range = "20000-50000";
-                interface = "eth0"; 
-              };
-              settings = {
-                listen = ":20000";
-                bandwidth = {
-                  up = "1024 mbps";
-                  down = "1024 mbps";
+              # cat /run/hysteria/main/config.yaml 获取 auth 密码
+              instances."main" = {
+                # 动态拼接域名: cloudcone.hy.shaog.uk
+                domain = "${hostConfig.name}.hy.${hostConfig.domainRoot}";
+                
+                portHopping = {
+                  enable = true;
+                  range = "20000-50000";
+                  interface = "eth0"; 
                 };
-                auth = {
-                  type = "password";
-                  password = ""; 
+                settings = {
+                  listen = ":20000";
+                  bandwidth = {
+                    up = "1024 mbps";
+                    down = "1024 mbps";
+                  };
+                  auth = {
+                    type = "password";
+                    password = ""; 
+                  };
+                  outbounds = [
+                    {
+                      name = "default";
+                      type = "direct";
+                    }
+                  ];
                 };
-                outbounds = [
-                  {
-                    name = "default";
-                    type = "direct";
-                  }
-                ];
               };
             };
 
