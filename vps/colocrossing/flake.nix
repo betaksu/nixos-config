@@ -18,19 +18,19 @@
     # ==========================================
     hostConfig = {
       name = "colocrossing";
-      domainRoot = "shaog.uk"; # 主域名，用于拼接
+      domainRoot = "betaksu.dpdns.org"; # 主域名，用于拼接
 
       auth = {
         # 你的 Hash 密码
-        rootHash = "$6$3A8ll87D81WnfND6$ghKF8iC69Vaar18Ete3Lff/G7modGVIIOzG/3guljMOoKjGkZherCoBZB1np7hXj0MiQjSXF62Pk55Qm5i.pV/";
+        rootHash = "$y$j9T$lO5V9EP90ePthkQujy1SS/$9e9TDzgIb1Nn3kPO4IkYVklPR.yqBSMQVIHIz.9fYx3";
         # SSH Keys
-        sshKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUX87zC0TYwENrTpb6HJCbbgGQzayw88EUz5eSgjzFf ed25519 256-20260113 shaog@duck.com" ];
+        sshKeys = [ "SHA256:Yz8vrm5IepjFqiXZBU8pN1S9e37oSgd21i67wkZ/U+Q betaksu@outlook.com" ];
       };
 
       ipv4 = {
-        address = "23.94.213.198";
+        address = "107.174.81.44";
         prefixLength = 25;
-        gateway = "23.94.213.129";
+        gateway = "107.174.81.1";
       };
     };
     # ==========================================
@@ -88,16 +88,16 @@
             # Services: Web Apps
             core.app.web.alist = {
                 enable = true;
-                # 动态拼接域名: alist.colocrossing.shaog.uk
-                domain = "alist.${hostConfig.name}.${hostConfig.domainRoot}";
+                # 动态拼接域名: alist-colocrossing.betaksu.dpdns.org
+                domain = "alist-${hostConfig.name}.${hostConfig.domainRoot}";
                 backend = "podman";
             };
             
             # cat /var/lib/x-ui-yg/init.log 获取账号密码
             core.app.web.x-ui-yg = {
                 enable = true;
-                # 动态拼接域名: x-ui.colocrossing.shaog.uk
-                domain = "x-ui.${hostConfig.name}.${hostConfig.domainRoot}";
+                # 动态拼接域名: x-ui-colocrossing.betaksu.dpdns.org
+                domain = "x-ui-${hostConfig.name}.${hostConfig.domainRoot}";
                 backend = "podman";
                 
                 # 手动配置防火墙端口范围 (可选，默认是 10000-10005)
@@ -112,8 +112,8 @@
               backend = "podman";
               # cat /run/hysteria/main/config.yaml 获取 auth 密码
               instances."main" = {
-                # 动态拼接域名: colocrossing.hy.shaog.uk
-                domain = "${hostConfig.name}.hy.${hostConfig.domainRoot}";
+                # 动态拼接域名: colocrossing-hy.betaksu.dpdns.org
+                domain = "${hostConfig.name}-hy.${hostConfig.domainRoot}";
                 
                 portHopping = {
                   enable = true;
