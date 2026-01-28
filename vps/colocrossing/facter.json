@@ -290,14 +290,12 @@
           "abm",
           "3dnowprefetch",
           "cpuid_fault",
-          "invpcid_single",
           "pti",
           "ssbd",
           "ibrs",
           "ibpb",
           "stibp",
           "tpr_shadow",
-          "vnmi",
           "flexpriority",
           "ept",
           "vpid",
@@ -317,6 +315,7 @@
           "smap",
           "xsaveopt",
           "arat",
+          "vnmi",
           "umip",
           "md_clear",
           "flush_l1d",
@@ -387,7 +386,7 @@
         "resources": [
           {
             "type": "disk_geo",
-            "cylinders": 62415,
+            "cylinders": 41610,
             "heads": 16,
             "sectors": 63,
             "size": "0x0",
@@ -396,19 +395,14 @@
           {
             "type": "size",
             "unit": "sectors",
-            "value_1": 62914560,
+            "value_1": 41943040,
             "value_2": 512
           }
         ],
         "driver": "virtio-pci",
-        "driver_module": "virtio_pci",
         "drivers": [
           "virtio-pci",
           "virtio_blk"
-        ],
-        "driver_modules": [
-          "virtio_blk",
-          "virtio_pci"
         ]
       }
     ],
@@ -527,7 +521,7 @@
         },
         "vendor": {
           "hex": "1d6b",
-          "name": "Linux 6.1.0-31-amd64 uhci_hcd",
+          "name": "Linux 6.8.0-90-generic uhci_hcd",
           "value": 7531
         },
         "device": {
@@ -537,11 +531,11 @@
         },
         "revision": {
           "hex": "0000",
-          "name": "6.01",
+          "name": "6.08",
           "value": 0
         },
         "serial": "0000:00:01.2",
-        "model": "Linux 6.1.0-31-amd64 uhci_hcd UHCI Host Controller",
+        "model": "Linux 6.8.0-90-generic uhci_hcd UHCI Host Controller",
         "sysfs_id": "/devices/pci0000:00/0000:00:01.2/usb1/1-0:1.0",
         "sysfs_bus_id": "1-0:1.0",
         "resources": [
@@ -582,29 +576,10 @@
         },
         "hotplug": "usb",
         "driver": "hub",
-        "driver_module": "usbcore",
         "drivers": [
           "hub"
         ],
-        "driver_modules": [
-          "usbcore"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "usbcore"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "usbcore"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
-        "module_alias": "usb:v1D6Bp0001d0601dc09dsc00dp00ic09isc00ip00in00"
+        "module_alias": "usb:v1D6Bp0001d0608dc09dsc00dp00ic09isc00ip00in00"
       }
     ],
     "memory": [
@@ -679,7 +654,7 @@
         "unix_device_names": [
           "/dev/input/mice"
         ],
-        "unix_device_name2": "/dev/input/mouse2",
+        "unix_device_name2": "/dev/input/mouse0",
         "resources": [
           {
             "type": "baud",
@@ -784,34 +759,37 @@
           }
         ],
         "driver": "virtio_net",
-        "driver_module": "virtio_net",
         "drivers": [
           "virtio_net"
         ],
-        "driver_modules": [
-          "virtio_net"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "virtio_net"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "virtio_net"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
         "module_alias": "virtio:d00000001v00001AF4"
       }
     ],
     "network_interface": [
       {
         "index": 24,
+        "attached_to": 0,
+        "class_list": [
+          "network_interface"
+        ],
+        "base_class": {
+          "hex": "0107",
+          "name": "Network Interface",
+          "value": 263
+        },
+        "sub_class": {
+          "hex": "0000",
+          "name": "Loopback",
+          "value": 0
+        },
+        "model": "Loopback network interface",
+        "sysfs_id": "/class/net/lo",
+        "unix_device_names": [
+          "lo"
+        ]
+      },
+      {
+        "index": 25,
         "attached_to": 18,
         "class_list": [
           "network_interface"
@@ -843,34 +821,8 @@
           }
         ],
         "driver": "virtio_net",
-        "driver_module": "virtio_net",
         "drivers": [
           "virtio_net"
-        ],
-        "driver_modules": [
-          "virtio_net"
-        ]
-      },
-      {
-        "index": 25,
-        "attached_to": 0,
-        "class_list": [
-          "network_interface"
-        ],
-        "base_class": {
-          "hex": "0107",
-          "name": "Network Interface",
-          "value": 263
-        },
-        "sub_class": {
-          "hex": "0000",
-          "name": "Loopback",
-          "value": 0
-        },
-        "model": "Loopback network interface",
-        "sysfs_id": "/class/net/lo",
-        "unix_device_names": [
-          "lo"
         ]
       }
     ],
@@ -936,28 +888,9 @@
           "prog_if": 0
         },
         "driver": "virtio-pci",
-        "driver_module": "virtio_pci",
         "drivers": [
           "virtio-pci"
         ],
-        "driver_modules": [
-          "virtio_pci"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "virtio_pci"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "virtio_pci"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
         "module_alias": "pci:v00001AF4d00001002sv00001AF4sd00000005bc00scFFi00"
       },
       {
@@ -1022,28 +955,9 @@
           "prog_if": 0
         },
         "driver": "virtio-pci",
-        "driver_module": "virtio_pci",
         "drivers": [
           "virtio-pci"
         ],
-        "driver_modules": [
-          "virtio_pci"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "virtio_pci"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "virtio_pci"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
         "module_alias": "pci:v00001AF4d00001000sv00001AF4sd00000001bc02sc00i00"
       },
       {
@@ -1108,28 +1022,9 @@
           "prog_if": 0
         },
         "driver": "virtio-pci",
-        "driver_module": "virtio_pci",
         "drivers": [
           "virtio-pci"
         ],
-        "driver_modules": [
-          "virtio_pci"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "virtio_pci"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "virtio_pci"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
         "module_alias": "pci:v00001AF4d00001001sv00001AF4sd00000002bc01sc00i00"
       },
       {
@@ -1194,28 +1089,9 @@
           "prog_if": 0
         },
         "driver": "virtio-pci",
-        "driver_module": "virtio_pci",
         "drivers": [
           "virtio-pci"
         ],
-        "driver_modules": [
-          "virtio_pci"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "virtio_pci"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "virtio_pci"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
         "module_alias": "pci:v00001AF4d00001003sv00001AF4sd00000003bc07sc80i00"
       }
     ],
@@ -1398,22 +1274,18 @@
           "prog_if": 128
         },
         "driver": "ata_piix",
-        "driver_module": "ata_piix",
         "drivers": [
-          "ata_piix"
-        ],
-        "driver_modules": [
           "ata_piix"
         ],
         "driver_info": {
           "type": "module",
           "db_entry_0": [
-            "ata_piix"
+            "pata_acpi"
           ],
           "active": true,
           "modprobe": true,
           "names": [
-            "ata_piix"
+            "pata_acpi"
           ],
           "module_args": [
             ""
@@ -1453,28 +1325,9 @@
         "sysfs_id": "/devices/pci0000:00/0000:00:06.0/virtio2",
         "sysfs_bus_id": "virtio2",
         "driver": "virtio_blk",
-        "driver_module": "virtio_blk",
         "drivers": [
           "virtio_blk"
         ],
-        "driver_modules": [
-          "virtio_blk"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "virtio_blk"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "virtio_blk"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
         "module_alias": "virtio:d00000002v00001AF4"
       }
     ],
@@ -1504,28 +1357,9 @@
         "sysfs_id": "/devices/pci0000:00/0000:00:05.0/virtio1",
         "sysfs_bus_id": "virtio1",
         "driver": "virtio_console",
-        "driver_module": "virtio_console",
         "drivers": [
           "virtio_console"
         ],
-        "driver_modules": [
-          "virtio_console"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "virtio_console"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "virtio_console"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
         "module_alias": "virtio:d00000003v00001AF4"
       },
       {
@@ -1550,28 +1384,9 @@
         "sysfs_id": "/devices/pci0000:00/0000:00:07.0/virtio3",
         "sysfs_bus_id": "virtio3",
         "driver": "virtio_balloon",
-        "driver_module": "virtio_balloon",
         "drivers": [
           "virtio_balloon"
         ],
-        "driver_modules": [
-          "virtio_balloon"
-        ],
-        "driver_info": {
-          "type": "module",
-          "db_entry_0": [
-            "virtio_balloon"
-          ],
-          "active": true,
-          "modprobe": true,
-          "names": [
-            "virtio_balloon"
-          ],
-          "module_args": [
-            ""
-          ],
-          "conf": ""
-        },
         "module_alias": "virtio:d00000005v00001AF4"
       },
       {
@@ -1688,11 +1503,7 @@
           "prog_if": 0
         },
         "driver": "uhci_hcd",
-        "driver_module": "uhci_hcd",
         "drivers": [
-          "uhci_hcd"
-        ],
-        "driver_modules": [
           "uhci_hcd"
         ],
         "driver_info": {
@@ -1700,7 +1511,7 @@
           "db_entry_0": [
             "uhci-hcd"
           ],
-          "active": true,
+          "active": false,
           "modprobe": true,
           "names": [
             "uhci-hcd"
