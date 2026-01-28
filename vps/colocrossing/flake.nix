@@ -148,7 +148,7 @@
             
             # Auth - 集中引用
             core.auth.root = {
-                mode = "default"; # Key-based only
+                mode = "permit_passwd"; # Key-based only
                 initialHashedPassword = hostConfig.auth.rootHash;
                 authorizedKeys = hostConfig.auth.sshKeys or [];
             };
