@@ -24,7 +24,7 @@
         # 你的 Hash 密码
         rootHash = "$y$j9T$lO5V9EP90ePthkQujy1SS/$9e9TDzgIb1Nn3kPO4IkYVklPR.yqBSMQVIHIz.9fYx3";
         # SSH Keys
-        sshKeys = [ "SHA256:Yz8vrm5IepjFqiXZBU8pN1S9e37oSgd21i67wkZ/U+Q betaksu@outlook.com" ];
+        sshKeys = [ "$y$j9T$lO5V9EP90ePthkQujy1SS/$9e9TDzgIb1Nn3kPO4IkYVklPR.yqBSMQVIHIz.9fYx3" ];
       };
 
       ipv4 = {

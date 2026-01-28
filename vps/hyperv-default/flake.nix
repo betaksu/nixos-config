@@ -19,8 +19,8 @@
 
       auth = {
         # 你的 Hash 密码
-        rootHash = "$6$G3ZXEHmXJxM.3CuP$lGex9soTGknjjhmIl.hBWxZNdI.z6SX74DvGMBs7KIWFb60grwWDCSA1ep6g73HkTo/kUO7nmbXE7Wem/kEny0";
-        sshKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA6I0JKhTjQEK7WDQUPRUGXq3oV7tWwrRtSyM6tnub/Q ed25519 256-20251217 shaog@duck.com" ];
+        rootHash = "$y$j9T$lO5V9EP90ePthkQujy1SS/$9e9TDzgIb1Nn3kPO4IkYVklPR.yqBSMQVIHIz.9fYx3";
+        sshKeys = [ "SHA256:Yz8vrm5IepjFqiXZBU8pN1S9e37oSgd21i67wkZ/U+Q betaksu@outlook.com" ];
       };
     };
     # ==========================================
